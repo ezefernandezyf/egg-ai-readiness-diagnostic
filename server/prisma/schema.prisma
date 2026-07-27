@@ -1,20 +1,17 @@
 // ── Egg AI Readiness Diagnostic — Database Schema ───────────────
 //
-// Development: SQLite (simple, zero-config)
-// Production:  PostgreSQL (deploy target)
-//
-// To switch to Postgres:
-//   1. Change provider to "postgresql"
-//   2. Update DATABASE_URL in .env
-//   3. Remove the default value on String fields (SQLite requires them)
+// PostgreSQL en producción (Supabase con PgBouncer).
+// DATABASE_URL usa el pooler (transaction mode, port 6543).
+// DIRECT_URL es para migrations (direct connection, port 5432).
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ── Lead ─────────────────────────────────────────────────────────
