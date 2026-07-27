@@ -3,8 +3,11 @@ import { z } from 'zod';
 // ── Lead capture form ───────────────────────────────────────────
 export const LeadCapture = z.object({
   email: z.string().email('Ingresá un email válido'),
+  firstName: z.string().min(1, 'Ingresá tu nombre'),
+  lastName: z.string().min(1, 'Ingresá tu apellido'),
+  phone: z.string().min(1, 'Ingresá tu teléfono'),
+  country: z.string().min(1, 'Ingresá tu país'),
   company: z.string().min(1, 'Ingresá el nombre de tu empresa'),
-  role: z.string().optional(),
 });
 export type LeadCapture = z.infer<typeof LeadCapture>;
 
@@ -12,8 +15,11 @@ export type LeadCapture = z.infer<typeof LeadCapture>;
 export const Lead = z.object({
   id: z.string().uuid(),
   emailHash: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+  phone: z.string().nullable(),
+  country: z.string(),
   company: z.string(),
-  role: z.string().nullable(),
   maturitySegment: z.enum(['low', 'medium', 'high']),
   createdAt: z.string().datetime(),
 });
@@ -29,7 +35,10 @@ export const DiagnosticSubmitPayload = z.object({
     }),
   ),
   email: z.string().email(),
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
+  phone: z.string().min(1),
+  country: z.string().min(1),
   company: z.string().min(1),
-  role: z.string().optional(),
 });
 export type DiagnosticSubmitPayload = z.infer<typeof DiagnosticSubmitPayload>;

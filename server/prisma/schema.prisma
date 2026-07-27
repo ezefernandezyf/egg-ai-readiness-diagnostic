@@ -9,9 +9,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // ── Lead ─────────────────────────────────────────────────────────
@@ -20,8 +19,11 @@ datasource db {
 model Lead {
   id               String   @id @default(uuid())
   email_hash       String   @unique
+  first_name       String
+  last_name        String
+  phone            String?
+  country          String
   company          String
-  role             String?
   maturity_segment String   // "low" | "medium" | "high"
   created_at       DateTime @default(now())
 

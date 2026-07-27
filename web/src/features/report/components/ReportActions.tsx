@@ -1,11 +1,11 @@
 // ── ReportActions ─────────────────────────────────────────────────
-// Download PDF + Email buttons with inline forms, loading states,
-// error handling, and double-submit prevention.
+// Download PDF + LinkedIn share with loading states, error handling,
+// and double-submit prevention.
 
 import { useRef, useState, useCallback } from 'react';
 import html2canvas from 'html2canvas';
-import { generateReportPdf, sendReportEmail } from '@/api/diagnostic';
-import { Button, Input } from '@/shared/ui';
+import { generateReportPdf } from '@/api/diagnostic';
+import { Button } from '@/shared/ui';
 
 interface ReportActionsProps {
   reportId: string;
@@ -15,7 +15,6 @@ interface ReportActionsProps {
 
 // ── States ────────────────────────────────────────────────────────
 type PdfState = 'idle' | 'loading' | 'success' | 'error';
-type EmailState = 'idle' | 'form' | 'sending' | 'success' | 'error';
 
 const ERROR_MESSAGES: Record<string, string> = {
   'Reporte no encontrado': 'El reporte no existe. Verifica el enlace.',
@@ -31,21 +30,8 @@ function getErrorMessage(err: unknown): string {
 
 export function ReportActions({ reportId, chartRef }: ReportActionsProps) {
   const [pdfState, setPdfState] = useState<PdfState>('idle');
-  const [emailState, setEmailState] = useState<EmailState>('idle');
-  const [emailValue, setEmailValue] = useState('');
-  const [emailError, setEmailError] = useState<string | null>(null);
   const [pdfError, setPdfError] = useState<string | null>(null);
-  const [emailSendError, setEmailSendError] = useState<string | null>(null);
-  const isSubmitting = pdfState === 'loading' || emailState === 'sending';
   const submitLockRef = useRef(false);
-
-  // ── Email validation ────────────────────────────────────────────
-  const validateEmail = useCallback((value: string): string | null => {
-    if (!value.trim()) return 'El email es requerido.';
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(value.trim())) return 'Ingresa un email valido.';
-    return null;
-  }, []);
 
   // ── Handle PDF download ─────────────────────────────────────────
   const handleDownloadPdf = useCallback(async () => {
@@ -91,38 +77,6 @@ export function ReportActions({ reportId, chartRef }: ReportActionsProps) {
     }
   }, [reportId, chartRef]);
 
-  // ── Handle email send ───────────────────────────────────────────
-  const handleSendEmail = useCallback(async () => {
-    const validationError = validateEmail(emailValue);
-    if (validationError) {
-      setEmailError(validationError);
-      return;
-    }
-    setEmailError(null);
-
-    // Double-submit prevention
-    if (submitLockRef.current) return;
-    submitLockRef.current = true;
-
-    setEmailState('sending');
-    setEmailSendError(null);
-
-    try {
-      const result = await sendReportEmail(reportId, emailValue.trim());
-      if (result.success) {
-        setEmailState('success');
-      } else {
-        setEmailSendError(result.message || 'Error al enviar el email.');
-        setEmailState('error');
-      }
-    } catch (err) {
-      setEmailSendError(getErrorMessage(err));
-      setEmailState('error');
-    } finally {
-      submitLockRef.current = false;
-    }
-  }, [reportId, emailValue, validateEmail]);
-
   // ── Handle LinkedIn share ────────────────────────────────────────
   const handleLinkedInShare = useCallback(() => {
     const url = encodeURIComponent(
@@ -135,15 +89,10 @@ export function ReportActions({ reportId, chartRef }: ReportActionsProps) {
     );
   }, [reportId]);
 
-  // ── Retry handlers ──────────────────────────────────────────────
+  // ── Retry handler ──────────────────────────────────────────────
   const handleRetryPdf = () => {
     setPdfState('idle');
     setPdfError(null);
-  };
-
-  const handleRetryEmail = () => {
-    setEmailState('form');
-    setEmailSendError(null);
   };
 
   return (
@@ -193,108 +142,6 @@ export function ReportActions({ reportId, chartRef }: ReportActionsProps) {
               <p className="text-sm text-rose">{pdfError || 'Error al generar el PDF.'}</p>
               <button
                 onClick={handleRetryPdf}
-                className="mt-1 font-accent text-xs font-semibold tracking-[0.07em] text-rose uppercase hover:underline"
-              >
-                Reintentar
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ── Email Section ──────────────────────────────────────── */}
-      <div className="flex flex-col gap-2">
-        {emailState === 'idle' && (
-          <Button
-            onClick={() => setEmailState('form')}
-            variant="primary"
-            className="w-full sm:w-auto"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
-              <rect x="2" y="4" width="20" height="16" rx="2" />
-              <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-            </svg>
-            Enviar por email
-          </Button>
-        )}
-
-        {emailState === 'form' && (
-          <div className="rounded-[16px] border border-grey-01 bg-white p-4">
-            <p className="mb-3 text-sm font-medium text-black-base">
-              Enviar reporte a tu email
-            </p>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-              <div className="flex-1">
-                <Input
-                  type="email"
-                  placeholder="tu@email.com"
-                  value={emailValue}
-                  onChange={(e) => {
-                    setEmailValue(e.target.value);
-                    if (emailError) setEmailError(null);
-                  }}
-                  error={!!emailError}
-                  errorMessage={emailError ?? undefined}
-                  disabled={isSubmitting}
-                  autoFocus
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  onClick={handleSendEmail}
-                  disabled={isSubmitting}
-                  size="md"
-                >
-                  {isSubmitting ? 'Enviando...' : 'Enviar'}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="md"
-                  onClick={() => {
-                    setEmailState('idle');
-                    setEmailError(null);
-                    setEmailSendError(null);
-                  }}
-                  disabled={isSubmitting}
-                >
-                  Cancelar
-                </Button>
-              </div>
-            </div>
-
-            {isSubmitting && (
-              <div className="mt-2 flex items-center gap-2">
-                <div className="h-3 w-3 animate-spin rounded-full border-2 border-grey-01 border-t-rose" />
-                <span className="text-xs text-beige-04">Enviando reporte...</span>
-              </div>
-            )}
-          </div>
-        )}
-
-        {emailState === 'success' && (
-          <div className="flex items-center gap-3 rounded-[16px] border border-green-500/30 bg-green-50 p-3">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-              <polyline points="22 4 12 14.01 9 11.01" />
-            </svg>
-            <div>
-              <p className="text-sm text-green-700">Reporte enviado a {emailValue}.</p>
-              <p className="text-xs text-green-600">Revisa tu bandeja de entrada.</p>
-            </div>
-          </div>
-        )}
-
-        {emailState === 'error' && (
-          <div className="flex items-center gap-3 rounded-[16px] border border-rose/30 bg-rose/5 p-3">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff647c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
-              <circle cx="12" cy="12" r="10" />
-              <line x1="15" y1="9" x2="9" y2="15" />
-              <line x1="9" y1="9" x2="15" y2="15" />
-            </svg>
-            <div className="flex-1">
-              <p className="text-sm text-rose">{emailSendError || 'Error al enviar el email.'}</p>
-              <button
-                onClick={handleRetryEmail}
                 className="mt-1 font-accent text-xs font-semibold tracking-[0.07em] text-rose uppercase hover:underline"
               >
                 Reintentar

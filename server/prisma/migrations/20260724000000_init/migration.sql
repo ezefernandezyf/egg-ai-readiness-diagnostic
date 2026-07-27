@@ -2,8 +2,11 @@
 CREATE TABLE "Lead" (
     "id" TEXT NOT NULL,
     "email_hash" TEXT NOT NULL,
+    "first_name" TEXT NOT NULL,
+    "last_name" TEXT NOT NULL,
+    "phone" TEXT,
+    "country" TEXT NOT NULL,
     "company" TEXT NOT NULL,
-    "role" TEXT,
     "maturity_segment" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 

@@ -2,7 +2,6 @@
 // POST /api/diagnostic/submit — full submission flow
 // GET  /api/diagnostic/report/:id — fetch report data
 // POST /api/diagnostic/report/:id/pdf — generate and return PDF
-// POST /api/diagnostic/send-email — send report via email
 
 import { Router, type IRouter } from 'express';
 import { PrismaClient } from '@prisma/client';
@@ -10,7 +9,6 @@ import { createHash } from 'node:crypto';
 import { calculateDimensionScore, calculateOverallScore, getMaturitySegment } from '../services/scoring.js';
 import { generateReport } from '../services/groq.js';
 import { generatePdf } from '../services/pdf.js';
-import { sendReportEmail } from '../services/email.js';
 import type { AnswerInput } from '../services/groq.js';
 import type { PdfInput, PdfDimensionScore, PdfRecommendation } from '../services/pdf.js';
 import { DiagnosticSubmitPayload } from '@egg-demo/shared/contracts/lead.schema.js';
@@ -29,7 +27,7 @@ router.post('/submit', async (req, res, next) => {
   try {
     // 1. Validate input
     const parsed = DiagnosticSubmitPayload.parse(req.body);
-    const { answers, email, company, role } = parsed;
+    const { answers, email, firstName, lastName, phone, country, company } = parsed;
 
     // 2. Group answers by dimension
     const grouped: Record<string, number[]> = {};
@@ -93,8 +91,11 @@ router.post('/submit', async (req, res, next) => {
       const lead = existingLead ?? (await tx.lead.create({
         data: {
           email_hash: emailHash,
+          first_name: firstName,
+          last_name: lastName,
+          phone: phone ?? null,
+          country,
           company,
-          role: role ?? null,
           maturity_segment: maturitySegment,
         },
       }));
@@ -244,67 +245,6 @@ router.post('/report/:id/pdf', async (req, res, next) => {
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="diagnostico-ia-${id.slice(0, 8)}.pdf"`);
     res.status(200).send(pdfBuffer);
-  } catch (err) {
-    next(err);
-  }
-});
-
-// ── POST /api/diagnostic/send-email ──────────────────────────────
-router.post('/send-email', async (req, res, next) => {
-  try {
-    const { reportId, email } = req.body as { reportId?: string; email?: string };
-
-    if (!reportId || !email) {
-      res.status(400).json({
-        error: 'reportId y email son requeridos',
-        statusCode: 400,
-      });
-      return;
-    }
-
-    const report = await prisma.report.findUnique({
-      where: { id: reportId },
-      include: {
-        lead: {
-          include: { scores: true },
-        },
-      },
-    });
-
-    if (!report) {
-      res.status(404).json({ error: 'Reporte no encontrado', statusCode: 404 });
-      return;
-    }
-
-    const dimensionScores: PdfDimensionScore[] = report.lead.scores.map((s) => ({
-      dimension: s.dimension,
-      score: s.score_0_100,
-    }));
-
-    const recommendations: PdfRecommendation[] = report.recommendations
-      ? (JSON.parse(report.recommendations as string) as PdfRecommendation[])
-      : [];
-
-    const maturitySegment = getMaturitySegment(report.overall_score);
-
-    const pdfInput: PdfInput = {
-      overallScore: report.overall_score,
-      maturitySegment,
-      dimensionScores,
-      recommendations,
-      chartImageBase64: null,
-    };
-
-    const pdfBuffer = generatePdf(pdfInput);
-
-    const result = await sendReportEmail({
-      to: email,
-      reportId,
-      overallScore: report.overall_score,
-      pdfBuffer,
-    });
-
-    res.json(result);
   } catch (err) {
     next(err);
   }

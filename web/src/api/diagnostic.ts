@@ -8,8 +8,11 @@ interface SubmitAnswer {
 export interface SubmitPayload {
   answers: SubmitAnswer[];
   email: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  country: string;
   company: string;
-  role?: string;
 }
 
 export interface DimensionScore {
@@ -102,23 +105,4 @@ export async function generateReportPdf(
   return response.blob();
 }
 
-// ── Send email with report ───────────────────────────────────────
-export async function sendReportEmail(
-  reportId: string,
-  email: string,
-): Promise<{ success: boolean; message: string }> {
-  const response = await fetch(`${API_BASE}/diagnostic/send-email`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ reportId, email }),
-  });
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => null);
-    throw new Error(
-      errorData?.error ?? `Error ${response.status}: no se pudo enviar el email`,
-    );
-  }
-
-  return response.json() as Promise<{ success: boolean; message: string }>;
-}
