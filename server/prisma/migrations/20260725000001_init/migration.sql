@@ -1,3 +1,9 @@
+-- Drop existing tables and recreate with new schema
+DROP TABLE IF EXISTS "Report" CASCADE;
+DROP TABLE IF EXISTS "DimensionScore" CASCADE;
+DROP TABLE IF EXISTS "QuizResponse" CASCADE;
+DROP TABLE IF EXISTS "Lead" CASCADE;
+
 -- CreateTable
 CREATE TABLE "Lead" (
     "id" TEXT NOT NULL,
