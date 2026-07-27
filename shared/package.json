@@ -4,8 +4,9 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./*": "./*"
+    "./*": "./dist/*"
   },
+  "main": "dist/contracts/index.js",
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
