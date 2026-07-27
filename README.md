@@ -1,6 +1,6 @@
 # Egg AI Readiness Diagnostic
 
-Demo interactivo de diagnóstico de madurez IA para empresas. Proyecto de portfolio que demuestra iniciativa técnica full-stack — construido como herramienta de outreach para conseguir primer empleo como desarrollador.
+Diagnóstico interactivo de madurez IA para empresas. Herramienta full-stack que evalúa 5 dimensiones clave y genera un reporte personalizado con recomendaciones vía Groq.
 
 Inspirado en [Egg.live](https://egg.live), plataforma argentina de transformación de talento a la era IA.
 
@@ -19,7 +19,7 @@ pnpm install
 pnpm dev               # localhost:5173
 
 # 3. Tests
-pnpm test              # 38 tests, 0 failures
+pnpm test              # 40 tests, 0 failures
 ```
 
 ## Stack
@@ -31,9 +31,8 @@ pnpm test              # 38 tests, 0 failures
 | AI | Groq API (llama-3.1-8b-instant) |
 | State | TanStack Query + Zustand |
 | Validación | Zod 4 (contratos compartidos front/back) |
-| Tests | Vitest (38 tests) |
+| Tests | Vitest (40 tests) |
 | PDF | jsPDF |
-| Email | Nodemailer |
 | Diseño | Plus Jakarta Sans + Space Grotesk |
 
 ## Funcionalidades
@@ -43,15 +42,14 @@ pnpm test              # 38 tests, 0 failures
 - **Reporte con IA**: Narrativa y recomendaciones personalizadas generadas por Groq
 - **Dashboard**: Radar chart (Recharts), desglose por dimensión, recomendaciones priorizadas
 - **PDF descargable**: Reporte completo con scores y recomendaciones
-- **Envío por email**: Entrega del reporte vía SMTP (fallback a console.log en dev)
-- **Detección de duplicados**: Email duplicado devuelve reporte cacheado
+- **Lead capture**: Nombre, apellido, teléfono, país, empresa — segmentación por madurez
 
 ## Arquitectura
 
 ```
 egg-demo/
 ├── web/          # React SPA (quiz wizard, dashboard, lead form)
-├── server/       # Express API (scoring, Groq, PDF, email, Prisma)
+├── server/       # Express API (scoring, Groq, PDF, Prisma)
 ├── shared/       # Zod schemas compartidos (tipos front/back)
 └── openspec/     # SDD artifacts (spec, design, tasks)
 ```
@@ -67,21 +65,12 @@ egg-demo/
 | PDF | jsPDF (serverless-safe, sin headless browser) |
 | Auth | Sin auth — herramienta pública |
 
-## Checklist
+## Deploy
 
-- [x] Quiz funcional (5 pasos, validación, navegación)
-- [x] Scoring + Groq + fallback
-- [x] Reporte dashboard (radar + scores + recs)
-- [x] PDF descargable
-- [x] Envío por email
-- [x] 38 tests pasando
-- [x] Demo no oficial (branding claro)
-
-## Próximos pasos
-
-- Deploy a Vercel
-- Outreach a Egg.live
+- **Frontend**: Vercel
+- **Backend**: Render
+- **DB**: Supabase (PostgreSQL)
 
 ---
 
-*Proyecto de portfolio — no afiliado oficialmente con Egg.live.*
+*Demo no oficial — no afiliado con Egg.live.*
