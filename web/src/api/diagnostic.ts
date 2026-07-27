@@ -47,7 +47,7 @@ export interface ReportResponse {
 }
 
 // ── API base ─────────────────────────────────────────────────────
-const API_BASE = '/api';
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '/api';
 
 // ── Submit quiz + lead ───────────────────────────────────────────
 export async function submitQuiz(payload: SubmitPayload): Promise<SubmitResponse> {
