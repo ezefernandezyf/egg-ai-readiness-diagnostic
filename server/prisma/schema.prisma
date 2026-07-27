@@ -1,0 +1,73 @@
+// ── Egg AI Readiness Diagnostic — Database Schema ───────────────
+//
+// Development: SQLite (simple, zero-config)
+// Production:  PostgreSQL (deploy target)
+//
+// To switch to Postgres:
+//   1. Change provider to "postgresql"
+//   2. Update DATABASE_URL in .env
+//   3. Remove the default value on String fields (SQLite requires them)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ── Lead ─────────────────────────────────────────────────────────
+// Stores captured lead info. Email is stored as SHA-256 hash only.
+// maturity_segment is derived from overall_score (low/medium/high).
+model Lead {
+  id               String   @id @default(uuid())
+  email_hash       String   @unique
+  company          String
+  role             String?
+  maturity_segment String   // "low" | "medium" | "high"
+  created_at       DateTime @default(now())
+
+  responses QuizResponse[]
+  scores     DimensionScore[]
+  report     Report?
+}
+
+// ── Quiz Response ────────────────────────────────────────────────
+// One row per answered question (15 total per submission).
+model QuizResponse {
+  id           String @id @default(uuid())
+  lead_id      String
+  dimension    String // "Estrategia"|"Talento"|"Procesos"|"Tecnología"|"Cultura"
+  question_key String
+  score_1_5    Int
+
+  lead Lead @relation(fields: [lead_id], references: [id])
+}
+
+// ── Dimension Score ──────────────────────────────────────────────
+// One row per dimension, score normalized to 0-100.
+model DimensionScore {
+  id          String @id @default(uuid())
+  lead_id     String
+  dimension   String
+  score_0_100 Float
+
+  lead Lead @relation(fields: [lead_id], references: [id])
+}
+
+// ── Report ───────────────────────────────────────────────────────
+// Stores the overall score, AI narrative, recommendations, and PDF URL.
+// partial=true when Groq fails — scores only, no narrative/recs.
+model Report {
+  id              String   @id @default(uuid())
+  lead_id         String   @unique
+  overall_score   Float
+  narrative       String?
+  recommendations String?  // JSON array: [{dimension, action, priority, expectedImpact}]
+  pdf_url         String?
+  partial         Boolean  @default(false)
+  created_at      DateTime @default(now())
+
+  lead Lead @relation(fields: [lead_id], references: [id])
+}

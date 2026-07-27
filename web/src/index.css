@@ -1,0 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+@import 'tailwindcss';
+
+/* ── Egg Brand Design Tokens ───────────────────────────────────── */
+@theme {
+  --font-sans: 'Plus Jakarta Sans', sans-serif;
+  --font-accent: 'Space Grotesk', sans-serif;
+
+  --color-bg: #f7f5f2;
+  --color-bg-panel: #ece7e6;
+  --color-black-base: #1b1b1b;
+  --color-beige-04: #6B6559; /* WCAG AA ~5.2:1 sobre #f7f5f2 */
+  --color-rose: #ff647c;
+  --color-yellow: #ffcd00;
+  --color-grey-01: #d2d2d2;
+  --color-white: #ffffff;
+
+  --radius-card: 30px;
+  --radius-card-sm: 16px;
+  --radius-pill: 999px;
+}
+
+/* ── Base styles ────────────────────────────────────────────────── */
+body {
+  background-color: var(--color-bg);
+  color: var(--color-black-base);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+/* ── Utility classes ────────────────────────────────────────────── */
+.container-egg {
+  max-width: 1240px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 768px) {
+  .container-egg {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
