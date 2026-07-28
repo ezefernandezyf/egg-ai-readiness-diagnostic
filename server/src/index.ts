@@ -17,6 +17,9 @@ app.use(cors({ origin: CORS_ORIGIN }));
 app.use(express.json({ limit: '100kb' }));
 
 // ── Health check ────────────────────────────────────────────────
+app.get('/health', (_req, res) => {
+  res.status(200).send('ok');
+});
 app.get('/api/health', (_req, res) => {
   res.json({
     status: 'ok',
